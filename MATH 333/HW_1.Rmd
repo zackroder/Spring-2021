@@ -1,0 +1,121 @@
+---
+title: "MATH333 HW1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Exercise 1
+Done :D
+
+#### Exercise 2
+Installed ```xts``` and ```zoo``` packages.
+```{r}
+library(xts)
+library(zoo)
+```
+
+#### Exercise 3
+Installed package ```astsa```
+```{R}
+library(astsa)
+```
+
+#### Exercise 4
+```{R}
+(1:20/10) %% 1
+```
+This generates the sequence of numbers 1 through 20, divides each by 10, then does modulus division on each by 1.
+
+#### Exercise 5
+Verifying: $$1/i = -i$$
+```{R}
+1/1i
+```
+
+#### Exercise 6
+Verifying: $$e^{i\pi} = -1$$
+```{R}
+exp(1i*pi)
+```
+
+#### Exercise 7
+```{R}
+cos(pi*1:4/2)
+```
+
+#### Exercise 8
+```0 = x = y``` actually generates an error, while the following assigns 0 to both ```x``` and ```y```.
+```{R}
+0 -> x -> y; x; y
+```
+
+#### Exercise 9
+```{R}
+y = c(2,4); z = c(8,3,2)
+```
+If we try to add ```y``` to ```z```, we see R's recycling rule for arithmetic. We expect the vector (10, 7, 4) because of the mismatched sizes of the vectors. R adds the first element of y to z.
+```{R}
+y + z
+```
+
+#### Exercise 10
+Writing ```cpg``` data file to "zzz.txt".
+```{R}
+#help(cpg)
+write(cpg, file="zzz.txt", ncolumns = 1)
+```
+
+#### Exercise 11
+Done!
+
+#### Exercise 12
+Scanning the data in the file "zzz.txt".
+```{R}
+(dummy = scan("zzz.txt"))
+```
+
+#### Exercise 13
+Creating sequence ```a``` with odd numbers and ```b``` with even numbers. Then, column-binding the two into an object ```x```.
+```{R}
+a = seq(1,10, by=2)
+b = seq(2, 10, by=2)
+x = cbind(a,b)
+x
+x[,1]
+```
+
+#### Exercise 14
+Generating 100 standard normals and drawing a boxplot of the results.
+```{R}
+options(digits=3)
+set.seed(911)
+boxplot(rnorm(100))
+```
+
+#### Exercise 15
+Writing a function that takes two numbers, ```x``` and ```y``` and returns ```x``` raised to the power of ```y```.
+```{R}
+pwr <- function(x,y){x^y}
+pwr(5,2)
+```
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
