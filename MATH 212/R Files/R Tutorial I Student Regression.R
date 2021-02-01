@@ -84,31 +84,35 @@ class(Salaries)
 ###########################Question###############################################################
 # Exercise
 # Use CPS85 Data set to do the following:
+data(CPS85, package="mosaicData")
 
 # To view the names of the variables 
-
+names(CPS85)
 # Rename all columns with the following variable names
 # WAGE, EDUC, RACE, SEX, HISPANIC, SOUTH,  MARRIED, EXPERIENCE, UNION, AGE, SECTOR
-
+names(CPS85)<-c("WAGE", "EDUC", "RACE", "SEX", "HISPANIC"
+                , "SOUTH",  "MARRIED", "EXPERIENCE", "UNION", "AGE", "SECTOR")
 # To view the names of the new variables 
 names(CPS85)
-
 # Rename the column EDUC to EDUCATION
-
+names(CPS85)[2] <- "EDUCATION"
 # To view the names of the new variables 
-
+names(CPS85)
 # To view the ?rst part of the data, use the head command
-
+head(CPS85)
 # To check the size (dimension) of the data frame
+dim(CPS85)
 # How many rows?
 # How many columns?
 
 
 # Select the variable RACE
+CPS85$RACE
 
 # Save the RACE variable in data set as MYRACE
-
+MYRACE <- CPS85$RACE
 # Learn about the abstract type
+class(CPS85)
 
 ############################################Answers########################################
 ###########################################################################################
