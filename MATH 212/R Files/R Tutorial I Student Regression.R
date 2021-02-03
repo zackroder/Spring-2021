@@ -126,7 +126,7 @@ class(CPS85)
 
 5:-3
 
-The seq() function creates sequences also.
+#The seq() function creates sequences also.
 seq(0, 3, by = .2) 
 
 seq(0, 3, length = 15) 
@@ -154,25 +154,26 @@ sort(X) 		# sort in increasing order X
 # Exercise vectors
 
 #Creating sequences in R from 11 to 25
+11:25
 
 # Use the seq() function creates sequence from 11 to 25 with increments of 2
-
+seq(11, 25, by=2)
 # Creating a vector in R with elements 10, 9, 7, 6, 3 and call it Y
-
+Y <- c(10, 9, 7, 6, 3)
 # Find the length of Y
-
+length(Y)
 # What is teh sum of the elemnts of Y
-
+sum(Y)
 # Place the elemts of Y in ascending order
-
+sort(Y)
 # What data type is Y?
-
+class(Y)
 # Creating a vector of teh following strings: Lines, Circles, Elipses, Parabolas and call it Z
-
+Z <- c("Lines", "Circles", "Ellipses", "Parabolas")
 # What data type is Y?
-
+class(Y)
 # Create a vector of logical values Fales, Fales, True, Fales and call it W
-
+W <- c(F, F, T, F)
 ################################Answer#######################
 #############################################################
 # Creating a scaler in R
