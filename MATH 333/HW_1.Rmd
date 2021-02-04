@@ -102,20 +102,32 @@ pwr <- function(x,y){x^y}
 pwr(5,2)
 ```
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+#### Exercise 16
+Add red horizontal and vertical lines to plot.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{R}
+set.seed(666)
+x = rnorm(10)
+y = 1 + 2*x + rnorm(10)
+summary(fit <- lm(y~x))
+plot(x,y)
+abline(fit, col=4)
 
-```{r cars}
-summary(cars)
+abline(h=mean(y), col=2, lty=2)
+abline(v=mean(x), col=2, lty=2)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+#### Exercise 17
+Run the previous example of mortality on poulltion without first making a data frame.
+```{R}
+part4 <- lag(part, -4)
+summary(fit <- lm(cmort~ part + part4, na.action=NULL))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+#### Exercise 18
+```{R}
+par(mfrow=c(2,1))
+tsplot(sunspotz, type="o")
+tsplot(lynx, type="o")
+```
+It appears that as the sunspot numbers go up, the lynx population also goes up.
