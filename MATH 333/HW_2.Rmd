@@ -1,0 +1,27 @@
+---
+title: "MATH333 HW2 - Zack Roder"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(astsa)
+```
+
+#### Exercise 1.1
+##### Part (a)
+```{r 1.1a}
+w = rnorm(100 + 50) #extra 50 to avoid startup issues
+x = filter(w, filter=c(0, -0.9), method="recursive")[-(1:50)]
+v = filter(x, sides=2, filter=rep(1/4, 4))
+tsplot(x, main="Autoregression & Moving Average")
+lines(v, lty=2, col=2)
+```
+
+##### Part (b)
+```{r 1.1b}
+t = 1:250
+cs = 2*cos((2*pi*t)/4)
+w = rnorm(250)
+tsplot( cs+w, col = 4)
+```

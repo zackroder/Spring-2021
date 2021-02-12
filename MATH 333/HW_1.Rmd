@@ -1,5 +1,5 @@
 ---
-title: "MATH333 HW1"
+title: "MATH333 HW1 - Zack Roder"
 output: html_document
 ---
 
@@ -130,4 +130,5 @@ par(mfrow=c(2,1))
 tsplot(sunspotz, type="o")
 tsplot(lynx, type="o")
 ```
+
 It appears that as the sunspot numbers go up, the lynx population also goes up.
