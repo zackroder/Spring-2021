@@ -25,3 +25,103 @@ cs = 2*cos((2*pi*t)/4)
 w = rnorm(250)
 tsplot( cs+w, col = 4)
 ```
+
+##### Part (c)
+```{r 1.1c}
+x = log(jj)
+
+#moving average
+v = filter(x, sides=2, filter=rep(1/4, 4))
+tsplot(v, col=4, main="J&J MA")
+```
+
+##### Part (d)
+Seasonal adjustment is a technique that is used to account for the influence of predictable seasonal patterns (quarterly, weekly, holidays, etc.) It is important to adjust for seasonality in order to better understand underlying trends.
+
+##### Part (e)
+I learned how to generate and plot auto-regressions, moving-averages, and signal plus noise.
+
+#### Exercise 1.2
+##### Part (a)
+```{r 1.2a}
+par(mfrow=2:1)
+tsplot(EQ5)
+tsplot(EXP6)
+```
+
+##### Part (b)
+```{r 1.2b}
+tsplot(EQ5, col="blue", main="EQ5 and EXP6", ylab="Seismic Recording")
+lines(EXP6, col="red")
+```
+##### Part (c)
+The earthquake has its highest peak at a later timestamp that the explosion does. Furthermore, the earthquake's high peaks are more spread out across time (perhaps those are aftershocks), while the explosion has one large peak around timestamp 1200 and no large peaks following that.
+
+#### Exercise 1.3
+##### Part (a)
+```{r 1.3a}
+par(mfrow=c(3,3))
+w1 = rnorm(500); x1 = cumsum(w1)
+w2 = rnorm(500); x2 = cumsum(w2)
+w3 = rnorm(500); x3 = cumsum(w3)
+w4 = rnorm(500); x4 = cumsum(w4)
+w5 = rnorm(500); x5 = cumsum(w5)
+w6 = rnorm(500); x6 = cumsum(w6)
+w7 = rnorm(500); x7 = cumsum(w7)
+w8 = rnorm(500); x8 = cumsum(w8)
+w9 = rnorm(500); x9 = cumsum(w9)
+tsplot(x1)
+tsplot(x2, col=2)
+tsplot(x3, col=3)
+tsplot(x4, col=4)
+tsplot(x5, col=5)
+tsplot(x6, col=6)
+tsplot(x7, col=7)
+tsplot(x8, col=8)
+tsplot(x9, col=9)
+```
+
+##### Part (b)
+```{r 1.3b}
+par(mfrow=c(3,3))
+w1 = rnorm(500); x1 = filter(w1, sides=2, filter = rep(1/3, 3))
+w2 = rnorm(500); x2 = filter(w2, sides=2, filter = rep(1/3, 3))
+w3 = rnorm(500); x3 = filter(w3, sides=2, filter = rep(1/3, 3))
+w4 = rnorm(500); x4 = filter(w4, sides=2, filter = rep(1/3, 3))
+w5 = rnorm(500); x5 = filter(w5, sides=2, filter = rep(1/3, 3))
+w6 = rnorm(500); x6 = filter(w6, sides=2, filter = rep(1/3, 3))
+w7 = rnorm(500); x7 = filter(w7, sides=2, filter = rep(1/3, 3))
+w8 = rnorm(500); x8 = filter(w8, sides=2, filter = rep(1/3, 3))
+w9 = rnorm(500); x9 = filter(w9, sides=2, filter = rep(1/3, 3))
+tsplot(x1, col=1)
+tsplot(x2, col=2)
+tsplot(x3, col=3)
+tsplot(x4, col=4)
+tsplot(x5, col=5)
+tsplot(x6, col=6)
+tsplot(x7, col=7)
+tsplot(x8, col=8)
+tsplot(x9, col=9)
+```
+
+##### Part (c)
+With the moving average plots, the values tend to stay within 1 or 2 standard deviations of the mean, while in the random walk plots we see the values go much further away from the mean. This makes me think that the random walk may be better for modeling upward or downward trends.
+
+#### Exercise 1.4
+##### Part (a)
+```{r 1.4a}
+tsplot(gdp, main="Quarterly GDP")
+```
+
+This plot looks similar to a random walk with an upward drift (like seen in Figure 1.10 in the book). In both, we see an upward trend paired with a seemingly random series of upward and downward shifts.
+
+##### Part (b)
+```{r 1.4b}
+tsplot(diff(log(gdp)), type="o", col=2, ylab="GDP Growth") #diff-log
+points(diff(gdp)/lag(gdp, -1), pch=8, col=5) #actual percent diff
+```
+
+As we can see, the difference of logs follows almost exactly with the actual percent differences. Because of that, the log difference can be useful for making non-stationary data stationary.
+
+##### Part (c)
+Looking at the plots generate in parts (a) and (b), it appears that the random walk with upward drift seems to best describe the behavior of the absolute GDP value, while the behavior of the GDP growth rate seems to be fairly well described by the autoregression model.
