@@ -54,6 +54,7 @@ tsplot(EXP6)
 tsplot(EQ5, col="blue", main="EQ5 and EXP6", ylab="Seismic Recording")
 lines(EXP6, col="red")
 ```
+
 ##### Part (c)
 The earthquake has its highest peak at a later timestamp that the explosion does. Furthermore, the earthquake's high peaks are more spread out across time (perhaps those are aftershocks), while the explosion has one large peak around timestamp 1200 and no large peaks following that.
 
