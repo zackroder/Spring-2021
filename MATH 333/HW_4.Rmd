@@ -1,0 +1,40 @@
+---
+title: "Homework #4"
+author: "C.J. Laws, Zack Roder, Graham Shank"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(astsa)
+```
+
+#### Exercise 2.11
+##### Part (a)
+```{r 2.11a}
+w = rnorm(500)
+r = acf1(w, 20, main="Sample ACF of simulated series of 500 white noise observations") #sample ACF w/ lag 20
+```
+
+We know that the actual ACF for a white noise series is $\rho(h) = \begin{cases} \sigma_w^2 \quad h = 0 \\ 0 \quad h \ne 0 \end{cases}$. 
+
+Although the sample ACF deviates from this, this is expected. Furthermore, we can see that they remain within the error bounds for the most part.
+
+##### Part (b)
+```{r 2.11b}
+w = rnorm(50)
+r = acf1(w, 20, main="Sample ACF of simulated series of 50 white noise observations")
+```
+
+Write up
+
+#### Exercise 2.12
+
+#### Part (a)
+```{r 2.12a}
+par(mfrow=2:1)
+w = rnorm(500)
+v = filter(w, sides=2, filter=rep(1/3,3)) #MA
+tsplot(v)
+acf1(v, 20)
+```
