@@ -8,33 +8,199 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(astsa)
 ```
+#### Exercise 2.8
+$$
+x_t = w_t\\
+y_t = w_t - \theta w_{t-1} + \mu_t
+$$
 
-#### Exercise 2.11
 ##### Part (a)
-```{r 2.11a}
-w = rnorm(500)
-r = acf1(w, 20, main="Sample ACF of simulated series of 500 white noise observations") #sample ACF w/ lag 20
-```
+For $h=0$:
 
-We know that the actual ACF for a white noise series is $\rho(h) = \begin{cases} \sigma_w^2 \quad h = 0 \\ 0 \quad h \ne 0 \end{cases}$. 
+\begin{align}
+\gamma_y(t,t) &= \text{cov}(y_t, y_t)\\
+              &= \text{cov}[(w_t - \theta w_{t-1} + \mu_t), (w_t - \theta w_{t-1} + \mu_t)]\\
+              &= \sigma_w^2 + \theta^2\sigma_w^2 + \sigma_\mu^2\\
+              &= (1 + \theta^2)\sigma_w^2 + \sigma_\mu^2
+\end{align}
 
-Although the sample ACF deviates from this, this is expected. Furthermore, we can see that they remain within the error bounds for the most part.
+For $h=1$:
+
+\begin{align}
+\gamma_y(t,t+1) &= \text{cov}[(w_t - \theta w_{t-1} + \mu_t), (w_{t+1} - \theta w_t + \mu_{t+1})]\\
+&=\theta\sigma_w^2
+\end{align}
+
+For $h \ge 2$, it is evident that $\gamma_y(h) = 0$.
+Thus, the ACF is as follows:
+\begin{align}
+\rho_y(h) = \begin{cases} 1 \quad h=0\\ \frac{\theta\sigma_w^2}{(1+\theta^2)\sigma_w^2 + \sigma_\mu^2} \quad h=\pm 1\\ 0 \quad |h| \ge 2\end{cases}
+\end{align}
 
 ##### Part (b)
-```{r 2.11b}
-w = rnorm(50)
-r = acf1(w, 20, main="Sample ACF of simulated series of 50 white noise observations")
+For $h=0$:
+\begin{align}
+\gamma_{xy}(0) &= \text{cov}[w_t, w_t - \theta w_{t-1} + \mu_t]\\
+               &= \sigma_w^2
+\end{align}
+
+For $h=-1$:
+\begin{align}
+\gamma_{xy}(-1) &= \text{cov}[w_{t-1}, w_t - \theta w_{t-1} + \mu_t]\\
+                &= \text{cov}(w_{t-1}, -\theta w_{t-1})\\
+                &= -\theta \sigma_w^2
+\end{align}
+
+We observe that for all $h \ne -1, 0$, $\gamma_{xy} = 0$. Noting that $\gamma_x(0) = \sigma_w^2$, we can find the CCF of $x_t$ and $y_t$:
+\begin{align}
+\rho_{xy}(h) &= \frac{\gamma_{xy}(h)}{\sqrt{\gamma_x(0)\gamma_y(0)}}\\
+             &= \frac{\gamma_{xy}(h)}{\sqrt{\sigma_w^2((1+\theta^2)\sigma_w^2 + \sigma_{\mu}^2)}}\\
+             &= \frac{\gamma_{xy}(h)}{\sigma_w\sqrt{\sigma_w^2 + \theta^2\sigma_w^2 + \sigma_{\mu}^2}}
+\end{align}
+
+Then, for the lag values that we know $\gamma_{xy}(h)$ is not equal to zero, we can summarize the CCF as follows:
+\begin{align}
+\rho_{xy}(h) &= \begin{cases} \frac{\sigma_w}{\sqrt{\sigma_w^2 + \theta^2\sigma_w^2 + \sigma_{\mu}^2}} \quad h=0\\
+\frac{-\theta\sigma_w}{\sqrt{\sigma_w^2 + \theta^2\sigma_w^2 + \sigma_{\mu}^2}} \quad h=-1
+\end{cases}
+\end{align}
+
+##### Part (c)
+
+Since both $x_t$ and $y_t$ are clearly stationary and their cross-covariance function is a function only of lag $h$, we can confirm that the two series are jointly stationary.
+
+#### Exercise 2.9
+First, we find the mean value function:
+\begin{align}
+E(x_t) &= E(w_tw_{t-1})\\
+       &= E(w_t)E(w_{t-1}) \quad \text{Note: since $w_t$ is indep. of $w_{t-1}$}\\
+       &= 0 \cdot 0\\
+       &= 0
+\end{align}
+
+Then, we find the autocovariance function, first for lag 0 ($h=0$):
+\begin{align}
+\gamma_x(0) &= \text{cov}(x_t, x_t)\\
+            &= E[(w_tw_{t-1} - 0)(w_tw_{t-1} - 0)]\\
+            &= E[w_t^2w_{t-1}^2]\\
+            &= E(w_t^2)E(w_{t-1}^2)\\
+            &= \text{Var}(w_t)\text{Var}(w_{t-1})\\
+            &= \sigma_w^2\sigma_w^2\\
+            &= \sigma_w^4
+\end{align}
+
+For $h=1$:
+\begin{align}
+\gamma_x(1) &= \text{cov}(x_t, x_{t+1})\\
+            &= E[(w_tw_{t-1} - 0)(w_{t+1}w_{t} - 0)] \\
+            &= E(w_t^2)E(w_{t-1})E(w_{t+1})\\
+            &= \sigma_w^2 \cdot 0 \cdot 0 \\
+            &= 0
+\end{align}
+
+Clearly, $\gamma_x(h) = 0$ for all $h \ne 0$. In summary, autocovariance function is:
+\begin{align}
+\gamma_x(h) = \begin{cases} \sigma_w^4 \quad h = 0\\ 0 \quad h \ne 0  \end{cases}
+\end{align}
+
+Since the mean value function is constant for all $t$ and the autocovariance function only depends on time in terms of lag, we can conclude that $x_t$ is stationary.
+
+#### Exercise 2.10
+##### Part (a)
+The mean function is as follows:
+\begin{align}
+E(x_t) &= E(\mu + w_t + \theta w_{t-1})\\
+       &= E(\mu) + E(w_t) + \theta E(w_{t-1}) \\
+       &= \mu + 0 + \theta(0)\\
+       &= \mu
+\end{align}
+
+##### Part (b)
+For $h=0$:
+\begin{align}
+\gamma_x(0) &= \text{cov}[(\mu + w_t + \theta w_{t-1}),(\mu + w_t + \theta w_{t-1})]\\
+            &= \text{cov}(\mu, \mu) + \text{cov}(w_t, w_t) + \text{cov}(\theta w_{t-1}, \theta w_{t-1})\\
+            &= 0 + \sigma_w^2 + \theta^2\sigma_w^2 \\
+            &= \sigma_w^2(1+\theta^2)
+\end{align}
+
+For $h = \pm 1$:
+\begin{align}
+\gamma_x(\pm 1) &= \text{cov}[(\mu + w_t + \theta w_{t-1}), (\mu + w_{t+1} + \theta w_t)]\\
+                &= \text{cov}(\mu, \mu) + \theta \text{cov}(w_t, w_t) \\
+                &= \sigma_w^2 \theta
+\end{align}
+For all $h \not\in \{-1, 0, 1\}$, it is clear that the autocovariance will be $0$, since $w_t$ is independent from $w_s$ for all $s,t$ such that $s \ne t$.
+
+##### Part (c)
+$\forall \theta \in \mathbb{R}$, it is clear that $E(x_t) = \mu$, since this value is unaffected by $\theta$.
+Likewise, for any value of $\theta$, the autocovariance function still only depends on $s,t$ in terms of their difference (lag). The value of the autocovariance changes with $\theta$, but the value of $\theta$ does not alter the autocovariance's relationship with $s,t$. Hence, $x_t$ is stationary regardless of the value of $\theta$.
+
+##### Part (d)
+Since the autocovariance function is $0$ for all values of $h$ not $0$ or $\pm 1$, 
+\begin{align}
+\text{var}(\bar{x}) &= \frac{1}{n}\sum_{h=-n}^2\left(1 - \frac{|h|}{n}\right)\gamma_x(h)\\
+&= \frac{1}{n} \left[\gamma_x(0) + \left(1 - \frac{1}{n} \right)\gamma_x(1) + \left(1 - \frac{1}{n} \right)\gamma_x(-1) \right]\\
+&= \frac{1}{n} \left[\gamma_x(0) + \frac{2(n-1)}{n}\gamma_x(1) \right]
+\end{align}
+
+###### (i) For $\theta = 0$:
+\begin{align}
+\text{Var}(\bar{x}) &= \frac{1}{n}\left[ \sigma_w^2 + 0 \right]\\
+                    &= \frac{\sigma_w^2}{n}
+\end{align}
+
+###### (ii) For $\theta = 1$:
+\begin{align}
+\text{Var}(\bar{x}) &= \frac{1}{n}\left[ 2\sigma_w^2 + \frac{2(n-1)}{n}\sigma_w^2 \right]\\
+                    &= \frac{\sigma_w^2}{n}\left[4 - \frac{2}{n} \right]
+\end{align}
+
+###### (iii) For $\theta = -1$:
+\begin{align}
+\text{Var}(\bar{x}) &= \frac{1}{n}\left[2\sigma_w^2 + \frac{2(n-1)}{n}(-\sigma_w^2) \right]\\
+                    &= \frac{\sigma_w^2}{n} \cdot \frac{2}{n}
+\end{align}
+
+##### Part (e)
+Intuitively, a larger sample size improves the accuracy in the estimate of mean $\mu$. This can be seen in the three results derived in part (d); we see that $\text{Var}(\bar{x})$ when $\theta = 0$, remains unchanged, while
+$$
+\text{Var}(\bar{x}) = \frac{4\sigma_w^2}{n} \quad \theta=1 \\
+\text{Var}(\bar{x}) = \frac{1}{n}\left(2\sigma_w^2 - 2\sigma_w^2 \right) = 0 \quad \theta = -1
+$$
+
+#### Exercise 2.14 
+
+##### Part (a)
+```{r}
+t = 1:500 
+cs = 2*cos(2*pi*(t+15)/50)
+w = rnorm (500)
+tsplot(cs, col = 2, main = expression(2*cos(2*pi*(t+15)/50)))
+acf(cs, lag.max = 100, type = "covariance")
 ```
 
-Write up
-
-#### Exercise 2.12
-
-#### Part (a)
-```{r 2.12a}
-par(mfrow=2:1)
-w = rnorm(500)
-v = filter(w, sides=2, filter=rep(1/3,3)) #MA
-tsplot(v)
-acf1(v, 20)
+##### Part (b)
+```{r}
+t = 1:500 
+cs = 2*cos(2*pi*(t+15)/50)
+w = rnorm (500)
+tsplot(cs + w, col = 2, main=expression(2*cos(2*pi*(t+15)/50 + N(0,1))))
+acf(cs, lag.max = 100, type = "covariance")
 ```
+
+#### Part (c)
+```{r}
+t = 1:500 
+cs = 2*cos(2*pi*(t+15)/50)
+w = rnorm (500)
+tsplot(cs + 5*w, col = 2, main=expression(2*cos(2*pi*(t+15)/50 + N(0,5))))
+```
+
+
+```{r}
+s2 = 2*cos(2*pi*((1:500 +15)/(50)))
+x2 = ts(s2 + rnorm(500))
+acf(x2, lag.max = 100, type = "covariance")
+```
+
