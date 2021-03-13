@@ -22,3 +22,8 @@ abline(lm(COMNODE$COST ~ COMNODE$NUMPORTS))
 ###########################################################
 Model <- lm(COMNODE$COST ~ COMNODE$NUMPORTS)
 summary(Model)
+
+# Finding SST and SSE
+anova(Model)
+
+
