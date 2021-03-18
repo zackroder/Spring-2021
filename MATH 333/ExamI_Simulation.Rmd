@@ -1,0 +1,51 @@
+---
+title: "To do the simulation portion"
+author: "Please answer here the simulation questions"
+output: html_document
+---
+ 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+In each of the followign questions, I want you to show the **R codes** and the **graphes** when required. Please Submit the **HTML** file, no rmd file is needed.  
+
+Before anything, we may need to load the used packages, ex: the astsa package.
+
+```{r}
+library(astsa)
+```
+
+##### Problem 1- b: Simulate and plot a white noise with mean zero and standard deviation equal to 5.  
+
+```{r 1b}
+w = rnorm(n=500, mean=0, sd=5)
+tsplot(w)
+acf1(w)
+```
+
+##### Problem 2- a: Simulate and plot the process Vt
+```{r 2a}
+w = rnorm(502) #extra samples
+v = filter(w, filter=rep(1/3,3), method="convolution", sides=2)
+par(mfrow=c(2,1))
+tsplot(w, main = "White noise")
+tsplot(v, main = "Moving average")
+
+```
+
+##### Problem 3- c: Simulate and plot **any path** of the process Xt. 
+Plotting $x_t$ with drift $\delta = 0$:
+```{r 3c}
+w = rnorm(500)
+x = cumsum(w)
+tsplot(x, main="Random walk w/o drift")
+acf1(x)
+```
+
+##### Problem 6- a: Simulate and plot any path of an AR(1) process and plot the autocorrelation function. 
+```{r 6a}
+w = rnorm(502) #extra samples
+x = filter(w, filter=c(0.5), method="recursive")[-(1:2)] #choose phi = 0.5
+tsplot(x, main="AR(1)")
+```
+
