@@ -49,18 +49,40 @@ visreg(Model, "ADV", gg = TRUE)
 
 ####################################################################
 # Question 17 Major League Baseball
+MLB <- read_excel("C:\\Users\\Zack\\Documents\\Spring 2021\\MATH 212\\Data Sets\\MLB4.xlsx", sheet=1)
+
+WINS <- MLB$WINS
+HR <- MLB$HR
+BA <- MLB$BA
+ERA <- MLB$ERA
+
+Model <- lm(WINS ~ HR + BA + ERA)
 
 ##################################################################
 # Creating conditional plots
-
+par(mfrow=c(1,3))
+visreg(Model, "HR", gg=TRUE)
+visreg(Model, "BA", gg=TRUE)
+visreg(Model, "ERA", gg=TRUE)
 ####################################################################
 # Question 14 Graduation Rate
+COLLEGE <- read_excel("C:\\Users\\Zack\\Documents\\Spring 2021\\MATH 212\\Data Sets\\COLLEGE4.xlsx", sheet=1)
 
+GRADRATE <- COLLEGE$GRADRATE4
+ADMISRATE <- COLLEGE$ADMISRATE
+SFACRATIO <- COLLEGE$SFACRATIO
+AVGDEBT <- COLLEGE$AVGDEBT
+
+model <- lm(GRADRATE ~ ADMISRATE + SFACRATIO + AVGDEBT)
 ##################################################################
 # Creating conditional plots
 ####################################################################
 
-
+library(ggplot2)
+library(visreg)
+visreg(model, "ADMISRATE")
+visreg(model, "SFACRATIO")
+visreg(model, "AVGDEBT")
 
 
 

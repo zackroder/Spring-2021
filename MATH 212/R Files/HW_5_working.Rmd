@@ -1,0 +1,240 @@
+---
+title: "HW 5"
+author: "C.J. Laws, Zack Roder, Graham Shank"
+date: "3/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(astsa)
+```
+
+
+### Exercise 3.1
+#### Part (a)
+
+```{r 3.1a}
+trend = time(jj) - 1970 #center time
+Q = factor(cycle(jj)) #Quarter factors
+reg = lm(log(jj) ~ 0 + trend + Q, na.action = NULL)
+model.matrix(reg)
+summary(reg)
+```
+
+#### Part (b)
+Looking at the trend components of our sctructural regression model, we observe a statistically significant trend coefficient of 0.167. This means that the estimated average annual increase in logged EPS is $0.167 under this model.
+
+#### Part (c)
+Under our model, the regression coefficient for Q4 is 0.882, meaning that there is an 11.8% decrease in average logged EPS from Q3 to Q4.
+
+#### Part (d)
+If we were to include an intercept term in the model, the first quarter coeffecient would drop out, because including all 4 indicators would cause some perfect collinearity between the 5 variables (the intercept and the 4 seasonal indicators).
+
+#### Part (e)
+
+```{r 3.1e}
+x = log(jj)
+tsplot(x)
+lines(fitted(reg), col=2)
+
+res <- resid(reg)
+tsplot(res)
+abline(0,0)
+```
+
+The trend apears to match the logged Johnson and Johnson data pretty well. The residual plot does not quite look white. We may need to include more controls in order to have a better fit model.
+
+
+### Exercise 3.2
+
+#### Part (a)
+```{r 3.2a}
+temp = tempr - mean(tempr)
+temp2 = temp^2
+trend = time(cmort)
+part_lag4 = lag(part, 4)
+
+fit1 = lm(cmort ~ trend + temp + temp2 + part, na.action=NULL)
+summary(fit1)
+anova(fit1)
+plot.ts(resid(fit1), col=2, main="Residuals for model w/o lag-4 part")
+
+#align data
+aligned = ts.intersect(cmort, trend, temp, temp2, part, part_lag4)
+fit2 = lm(cmort ~ trend + temp + temp2 + part + part_lag4, data=aligned, na.action = NULL)
+summary(fit2)
+anova(fit2)
+
+#compare residuals
+plot.ts(resid(fit2), col=4, main="Residuals for model w/ lag-4 part")
+```
+
+Comparing the two models, we notice that incorporating the lag-4 particulates increases the R-squared value from 0.595 to 0.627. Additionally, we notice a decreased SSE, suggesting that we have a better fit. However, we also want to account for the added complexity by measuring AIC and BIC before concluding that this model is better than the original.
+
+#### Part (b)
+First, we want to calculate the AIC and BIC for the original model:
+```{r 3.2b 1}
+num = length(cmort)
+
+AIC(fit1)/num - log(2*pi)
+BIC(fit1)/num - log(2*pi)
+```
+
+Next, we calculate the AIC and BIC for the new model that incorporates lag-4 particulates:
+```{r 3.2b 2}
+num = length(aligned[cmort])
+
+AIC(fit2)/num - log(2*pi)
+BIC(fit2)/num - log(2*pi)
+```
+
+Since the AIC and BIC for the model incorporating lag-4 particulates are slightly lower, we can conclude that this model is a slight improvement upon the original.
+
+### Exercise 3.3
+#### Part (a)
+Generate four random walks with drift 0.01:
+```{r 3.3a 1}
+rand_walk1 = cumsum(rnorm(500) + 0.01)
+rand_walk2 = cumsum(rnorm(500) + 0.01)
+rand_walk3 = cumsum(rnorm(500) + 0.01)
+rand_walk4 = cumsum(rnorm(500) + 0.01)
+```
+
+Next, we fit a regression model for each:
+```{r 3.3a 2}
+t = 1:500
+fit1 = lm(rand_walk1 ~ t, na.action=NULL)
+fit2 = lm(rand_walk2 ~ t, na.action=NULL)
+fit3 = lm(rand_walk3 ~ t, na.action=NULL)
+fit4 = lm(rand_walk4 ~ t, na.action=NULL)
+par(mfrow=c(2,2))
+tsplot(rand_walk1)
+abline(fit1, col=2)
+lines(0.01*t, col=4)
+
+tsplot(rand_walk2)
+abline(fit2, col=2)
+lines(0.01*t, col=4)
+
+tsplot(rand_walk3)
+abline(fit3, col=2)
+lines(0.01*t, col=4)
+
+tsplot(rand_walk4)
+abline(fit4, col=2)
+lines(0.01*t, col=4)
+
+```
+
+#### Part (b)
+Generate four series of linear trend plus noise:
+```{r 3.3b 1}
+t = 1:500
+a = 0.01*t + rnorm(500)
+b = 0.01*t + rnorm(500)
+c = 0.01*t + rnorm(500)
+d = 0.01*t + rnorm(500)
+```
+
+Fit and plot a regression for each:
+```{r 3.3b 2}
+fit_a = lm(a ~ t, na.action=NULL)
+fit_b = lm(b ~ t, na.action=NULL)
+fit_c = lm(c ~ t, na.action=NULL)
+fit_d = lm(d ~ t, na.action=NULL)
+
+par(mfrow=c(2,2))
+tsplot(a)
+abline(fit_a, col=2)
+lines(0.01*t, col=4)
+
+tsplot(b)
+abline(fit_b, col=2)
+lines(0.01*t, col=4)
+
+tsplot(c)
+abline(fit_c, col=2)
+lines(0.01*t, col=4)
+
+tsplot(d)
+abline(fit_d, col=2)
+lines(0.01*t, col=4)
+
+```
+
+#### Part (c)
+We notice that for the random walk with drift, the true mean function is very apparently different from the fitted regression line with regards to intercept, slope, or both. With the linear trend plus noise models, the true mean function almost perfectly aligns with the fitted regression. The linear trend plus noise model appears to be trend stationary, while the random walk plus drift model does not. Intuitively, this makes sense due to the summation of the walk-plus-drift model. 
+
+### Exercise 3.4
+
+#### Part (a)
+To show that $x_t$ is nonstationary, we can demonstrate that the mean function depends on t:
+\begin{align}
+\mu_{x_t} &= E(x_t)\\
+         &= E(\beta_0 + \beta_1 t + w_t)\\
+         &= \beta_0 + \beta_1 t + 0
+\end{align}
+Since the mean function clearly depends upon t, we know that $x_t$ cannot be stationary.
+
+#### Part (b)
+\begin{align}
+\nabla{x_t} &= (\beta_0 + \beta_1 t + w_t) - (\beta_0 + \beta_1 (t-1) + w_{t-1})\\
+&= -\beta_1 - w_{t-1}
+\end{align}
+To show that the first difference is stationary, we must show that the mean function is constant and that the autocovariance depends only upon lag:
+\begin{align}
+\mu_{\nabla{x_t}} &= E(-\beta_1 - w_{t-1})\\
+&= -\beta_1 
+\end{align}
+Since the covariance of any constant is always 0, we note that the autocovariance of $\nabla{x_t}$ will be the same as the autocovariance function for white noise (which is equal to 1 for lag 0 and 0 for any other lag). Hence, since the mean function is constant and the autocovariance depends only upon lag, we can conclude that $\nabla{x_t}$ is stationary.
+
+#### Part (c)
+For $x_t = \beta_0 + \beta_1 t + y_t$ where $y_t$ is stationary with mean function $\mu_y$ and autocovariance function $\gamma_y(h)$, 
+\begin{align}
+\nabla{x_t} = -\beta_1 - y_t
+\end{align}
+It is thus apparent that our mean value function will be $\mu_x = \beta - \mu_y$. Since we know $y_t$ is stationary, $\mu_y$ is constant, so $\mu_x$ is also constant. Additionally, since the variance of a constant is always 0, we know that $\gamma_x(h) = \gamma_y(h)$. Similarly, because $y_t$ is stationary, we know that its autocovariance function will only depend upon time in terms of lag. Hence, we can conclude that $x_t$ is also stationary.
+
+
+### Exercise 3.5
+
+To show that $\nabla_{x_t} = x_t - x_{t-1}$ is stationary, we must first show that its expected value does not depend on $t$.
+
+\begin{align}
+E(\nabla_{x_t}) = & E(x_t - x_{t-1})\\
+= & E(\delta + w_t + y_t - y_{t-1})\\
+= & E(\delta) + E(w_t) + E(y_t) - E(y_{t-1})\\
+= & \delta + 0 + \mu_t + \mu_{t-1}\\
+\end{align}
+
+From this, we can see that the expected value of the series does not depend on $t$. Now we must show that the autocovariance function does not depend on $t$.
+
+\begin{align}
+\gamma_{\nabla_{x_t}} = & \text{cov}(\nabla_{x_t}, \nabla_{x_{t-1}})\\
+= & \text{cov}(\delta + w_t + y_t - y_{t-1}, \delta + w_{t+h} + y_{t+h} - y_{t+h-1})\\
+= & \text{cov}(\delta, \delta) + \text{cov}(w_t, w_{t+h}) + \text{cov}(y_t - y_{t-1}, y_{t+h} - y_{t-1+h})\\
+= & 0 + \text{cov}(w_t, w_{t+h}) + 2\gamma_y(h) - \gamma(h+1) - \gamma_y(h-1)\\
+\end{align}
+Because cov$(w_t,w_{t+h} = 1$ if $h=0$ and 0 otherwise, and $y_t$ is stationary, we can see that this covariance only depends on time in lag, $h$, we can say that $\nabla_{x_t}$ is stationary.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
