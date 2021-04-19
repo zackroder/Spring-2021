@@ -1,5 +1,5 @@
 ---
-title: "333_hw6"
+title: "MATH 333 HW6"
 author: "C.J. Laws, Zack Roder, Graham Shank"
 date: "4/19/2021"
 output: html_document
@@ -14,23 +14,71 @@ library(astsa)
 ##### Part (a)
 ```{r}
 x = varve
+y = log(varve)
+
+#split in two
+a = max(time(x))
+b = min(time(x))
+c = (a - b)/2
+
+x_1 = x[1:c]
+x_2 = x[(c+1):a]
+
+#variance of each half
+var(x_1)
+var(x_2)
 ```
+We notice that the variance for the first half of the series is 131.96, while the variance for the second half of the series is 593.3. This demonstrates heteroscedasticity.
+
+Next, log the data:
+
+```{r}
+logged_x1 = log(x_1)
+logged_x2 = log(x_2)
+
+var(logged_x1)
+var(logged_x2)
+```
+
+We notice that, after logging the series, the first half has a variance of 0.27 and the second half has a variance of 0.45. This demonstrates that the logged data shows more stability in its variance when compared to the original series.
+
+Plot histograms:
+```{r}
+hist(x)
+hist(y)
+```
+
+We can clearly see a more normally-distributed frequency of values in the logged series.
 
 ##### Part (b)
 ```{r}
 y = log(varve)
-tsplot(y)
+tsplot(y, main="Logged Varve")
 ```
+
+During the period 1900-2000 in Figure 1.2, we can see an upward trend in temperature deviations. Similarly, in the logged varve plot, we see an upward trend between 200 to 400. Since we do not have a start year for this data, it is impossible to compare during the same time period.
 
 ##### Part (c)
 ```{r}
 acf1(y)
 ```
 
+The ACF values are statistically significant for lags up to and including 35. This shows that values in the series are highly correlated with preceding values in the series. This makes sense due to the trendy nature of the series. Also, this shows us that the log transformation did not make the data stationary.
+
+##### Part (d)
+Compute the difference: 
+```{r}
+u = diff(y)
+tsplot(u, main="Differenced Logged Varve")
+acf1(u)
+```
+Looking at the plot, it is pretty clear that differencing the logged varve series mostly de-trended the series. This is also apparent in the sample ACF. Most of the ACF values are approximately 0, although we do see a highly negative autocorrelation at lag 1, indicating that there is still some trend. Overall, however, this transformation produces a reasonably stationary series.
+
+A value in $u_t$ represents the increase in percentage change compared to the previous $(t-1)$ value. 
+
 #### Problem 3.7
 Moving average smoother (10-year moving average):
 ```{r}
-opar <- par()
 w = rep(1,10)/10
 gtemp_landf = filter(gtemp_land, sides=2, filter=w)
 gtemp_oceanf = filter(gtemp_ocean, sides=2, filter=w)
@@ -45,5 +93,92 @@ lines(gtemp_oceanf, lwd=2, col=4)
 Kernel smoothing:
 ```{r}
 tsplot(gtemp_land, col=2, main="Global Land Temperatures (w/ kernel smoothing)")
-lines(ksmooth(time(gtemp_land), gtemp_land, "normal", bandwidth = 0.5), lwd=2, col=4)
+lines(ksmooth(time(gtemp_land), gtemp_land, "normal", bandwidth=5), lwd=2, col=4)
+
+tsplot(gtemp_ocean, col=2, main="Global Ocean Temperatures (w/ kernel smoothing)")
+lines(ksmooth(time(gtemp_ocean), gtemp_ocean, "normal", bandwidth=5), lwd=2, col=4)
 ```
+
+Lowess smoothing:
+```{r}
+tsplot(gtemp_land, col=2, main="Global Land Temperatures (w/ Lowess)")
+lo = predict(loess(gtemp_land ~ time(gtemp_land)), se=TRUE)
+trnd = ts(lo$fit, start = 1880, freq=1) #return TS attributes
+lines(trnd, col=6, lwd=2)
+L = trnd - qt(0.975, lo$df)*lo$se
+U = trnd + qt(0.975, lo$df)*lo$se
+xx = c(time(gtemp_land), rev(time(gtemp_land)))
+yy = c(L, rev(U))
+polygon(xx,yy,border=8,col=gray(.6, alpha=.4))
+
+
+tsplot(gtemp_ocean, col=2, main="Global Ocean Temperatures (w/ Lowess)")
+lo = predict(loess(gtemp_ocean ~ time(gtemp_ocean)), se=TRUE)
+trnd = ts(lo$fit, start = 1880, freq=1) #return TS attributes
+lines(trnd, col=6, lwd=2)
+L = trnd - qt(0.975, lo$df)*lo$se
+U = trnd + qt(0.975, lo$df)*lo$se
+xx = c(time(gtemp_ocean), rev(time(gtemp_ocean)))
+yy = c(L, rev(U))
+polygon(xx,yy,border=8,col=gray(.6, alpha=.4))
+```
+
+#### Problem 3.8
+Since SOI is monthly data, a 4-year cycle corresponds to frequency of $\omega = 1/48$. To find a sinusodial fit, we want to find $A$ and $\phi$ such that:
+\begin{align}
+x_t &= A\cos(2\pi \omega t + \phi) + w_t \\
+    &= \beta_1\cos (2\pi \omega t) + \beta_2 (2 \pi \omega t) + w_t
+\end{align}
+where $\beta_1 = A\cos (\phi)$ and $\beta_2 = -A\sin (\phi)$. Use linear regression.
+
+```{r}
+SOI = ts(soi, freq=1)
+z1 = cos(2*pi*time(SOI)/48)
+z2 = sin(2*pi*time(SOI)/48)
+model <- lm(SOI ~ z1 + z2 + time(SOI))
+summary(model)
+
+trnd = ts(model$fit, start=1950, freq=12)
+
+tsplot(soi, col=4)
+lines(trnd, col=2)
+```
+
+Compare to Lowess model:
+```{r}
+tsplot(soi, col=2, main="SOI (w/ Lowess)")
+lo = predict(loess(soi ~ time(soi)), se=TRUE)
+trnd = ts(lo$fit, start = 1950, freq=12) #return TS attributes
+lines(trnd, col=6, lwd=2)
+L = trnd - qt(0.975, lo$df)*lo$se
+U = trnd + qt(0.975, lo$df)*lo$se
+xx = c(time(soi), rev(time(soi)))
+yy = c(L, rev(U))
+polygon(xx,yy,border=8,col=gray(.6, alpha=.4))
+```
+
+The Lowess fit seems to correspondly closely with the mean of the series, while the sinusodial model seems to better capture the seasonality of the series. That being said, neither of the models seem to be very good in modeling the variance of the series.
+
+#### Problem 3.9
+Log the JJ data then break down into trend, seasonal, and random components.
+```{r cars}
+y_t = jj
+x_t = log(jj)
+plot(decompose(x_t))
+
+culer = c("cyan4", 4, 2, 6) 
+par( mfrow = c( 4,1), cex.main = 1) 
+x = window(x_t, start = 1960)
+out = stl(x, s.window = 15)$time.series 
+tsplot(x, main ="JJ Stock Prices", ylab ="% Change in Price", col = gray(.7))
+text(x, labels = 1: 4, col = culer, cex = 1.25) 
+tsplot( out[, 1], main ="Seasonal", ylab ="% Change in Price", col = gray(.7))
+text( out[, 1], labels = 1: 4, col = culer, cex = 1.25) 
+tsplot( out[, 2], main =" Trend", ylab ="% Change in Price", col = gray(.7))
+text( out[, 2], labels = 1: 4, col = culer, cex = 1.25) 
+tsplot( out[, 3], main =" Noise", ylab ="% Change in Price", col = gray(.7))
+abline(h=0)
+text( out[, 3], labels = 1: 4, col = culer, cex = 1.25)
+```
+
+Although the technique used in 3.9 is similar to the one used in 3.1, the decomposition technique used here appears to provide a better fitting model. The noise component appears much more stationary than the residuals for the model 3.1

@@ -45,3 +45,22 @@ summary(Reduced_Model)
 anova(Reduced_Model, Full_Model)
 
 ##########################################
+
+#cost4 data
+
+COST4 <- read_excel("C:\\Users\\Zack\\Documents\\Spring 2021\\MATH 212\\Data Sets\\COST4.xlsx", sheet=1)
+Full_Model <- lm(COST4$COST ~ COST4$PAPER + COST4$MACHINE + COST4$OVERHEAD + COST4$LABOR)
+Reduced_Model <- lm(COST4$COST ~ COST4$PAPER + COST4$MACHINE)
+
+summary(Full_Model)
+summary(Reduced_Model)
+
+anova(Reduced_Model, Full_Model)
+
+
+#HARRIS 4
+HARRIS4 <- read_excel("C:\\Users\\Zack\\Documents\\Spring 2021\\MATH 212\\Data Sets\\HARRIS4.xlsx", sheet=1)
+Full_Model <- lm(HARRIS4$SALARY ~ HARRIS4$EDUC + HARRIS4$EXPER + HARRIS4$TIME)
+Reduced_Model <- lm(HARRIS4$SALARY ~ HARRIS4$EDUC)
+
+anova(Reduced_Model, Full_Model)

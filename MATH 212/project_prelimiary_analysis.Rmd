@@ -3,9 +3,9 @@ title: "MATH 212 Project Preliminary Analysis"
 author: "Zack Roder"
 date: "4/18/2021"
 output:
-  word_document: default
-  html_document: default
   pdf_document: default
+  html_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -15,7 +15,7 @@ library(ggcorrplot)
 econ_indicators <- read_excel("C:\\Users\\Zack\\Documents\\Spring 2021\\MATH 212\\Data Sets\\economic_indicators.xls", sheet=1)
 ```
 
-### Data Set
+## Data Set
 From https://fred.stlouisfed.org/, I retrieved a data set with various important economic indicators over the period from Q2 2011 through Q1 2020 (immediately before the COVID-induced recession).
 ```{r}
 econ_indicators

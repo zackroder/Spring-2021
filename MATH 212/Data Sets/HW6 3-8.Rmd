@@ -1,0 +1,44 @@
+---
+title: "HW6"
+author: "Graham Shank"
+date: "4/19/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(astsa)
+```
+
+## 3.9
+
+
+```{r cars}
+y_t = jj
+x_t = log(jj)
+plot(decompose(y_t))
+culer = c(" cyan4", 4, 2, 6) 
+par( mfrow = c( 4,1), cex.main = 1) 
+x = window(y_t, start = 1960)
+out = stl(x, s.window = 15)$time.series 
+tsplot(x, main ="JJ Stock Prices", ylab ="% Change in Price", col = gray(.7))
+text(x, labels = 1: 4, col = culer, cex = 1.25) 
+tsplot( out[, 1], main ="Seasonal", ylab ="% Change in Price", col = gray(.7))
+text( out[, 1], labels = 1: 4, col = culer, cex = 1.25) 
+tsplot( out[, 2], main =" Trend", ylab ="% Change in Price", col = gray(.7))
+text( out[, 2], labels = 1: 4, col = culer, cex = 1.25) 
+tsplot( out[, 3], main =" Noise", ylab ="% Change in Price", col = gray(.7))
+text( out[, 3], labels = 1: 4, col = culer, cex = 1.25)
+
+#mod = lm(y_t ~ time(y_t) + )
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
