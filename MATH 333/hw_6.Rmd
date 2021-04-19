@@ -1,0 +1,49 @@
+---
+title: "333_hw6"
+author: "C.J. Laws, Zack Roder, Graham Shank"
+date: "4/19/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(astsa)
+```
+
+#### Problem 3.6
+##### Part (a)
+```{r}
+x = varve
+```
+
+##### Part (b)
+```{r}
+y = log(varve)
+tsplot(y)
+```
+
+##### Part (c)
+```{r}
+acf1(y)
+```
+
+#### Problem 3.7
+Moving average smoother (10-year moving average):
+```{r}
+opar <- par()
+w = rep(1,10)/10
+gtemp_landf = filter(gtemp_land, sides=2, filter=w)
+gtemp_oceanf = filter(gtemp_ocean, sides=2, filter=w)
+tsplot(gtemp_land, col=2, main="Global Land Temperatures (w/ MA)")
+lines(gtemp_landf, lwd=2, col=4)
+
+tsplot(gtemp_ocean, col=2, main="Global Ocean Temperatures (w/ MA)")
+lines(gtemp_oceanf, lwd=2, col=4)
+
+```
+
+Kernel smoothing:
+```{r}
+tsplot(gtemp_land, col=2, main="Global Land Temperatures (w/ kernel smoothing)")
+lines(ksmooth(time(gtemp_land), gtemp_land, "normal", bandwidth = 0.5), lwd=2, col=4)
+```
