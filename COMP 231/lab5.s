@@ -15,7 +15,7 @@ _start:
 	ldw r8, 0(r7) #load from lut
 	
 	andi r9, r6, 0xf0 #first four bits (for left display)
-	srli r9, r9, 4 #shift right 4 bits
+	srli r9, r9, 4 #shift right 4 bits (to index from lut)
 	muli r9, r9, 4 #&lut[i] = &lut + i*4
 	add r9, r17, r9 # &lut[i] = &lut + i*4
 	ldw r10, 0(r9) #load from lut

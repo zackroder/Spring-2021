@@ -1,0 +1,107 @@
+---
+title: "MATH 212 Project Preliminary Analysis"
+author: "Zack Roder"
+date: "4/18/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(ggcorrplot)
+econ_indicators <- read_excel("C:\\Users\\Zack\\Documents\\Spring 2021\\MATH 212\\Data Sets\\economic_indicators.xls", sheet=1)
+```
+
+### Data Set
+From https://fred.stlouisfed.org/, I retrieved a data set with various important economic indicators over the period from Q2 2011 through Q1 2020 (immediately before the COVID-induced recession).
+```{r}
+econ_indicators
+```
+1. There are 5 variables in my data set. 
+  + Unemployment rate (UNRATE) - From FRED: "The unemployment rate represents the number of unemployed as a percentage of the labor force. Labor force data are restricted to people 16 years of age and older, who currently reside in 1 of the 50 states or the District of Columbia, who do not reside in institutions (e.g., penal and mental facilities, homes for the aged), and who are not on active duty in the Armed Forces. This rate is also defined as the U-3 measure of labor underutilization." Unit is percent (seasonally adjusted).
+  + Gross domestic product (GDP) - From FRED: "Gross domestic product (GDP), the featured measure of U.S. output, is the market value of the goods and services produced by labor and property located in the United States." Unit is billions of dollars, seasonally adjusted annual rate.
+  + Employed full time: median usual weekly nominal earnings, 16 years and over (MEDIAN_EARNINGS) - from FRED: "Data measure usual weekly earnings of wage and salary workers. Wage and salary workers are workers who receive wages, salaries, commissions, tips, payment in kind, or piece rates. The group includes employees in both the private and public sectors but, for the purposes of the earnings series, it excludes all self-employed persons, both those with incorporated businesses and those with unincorporated businesses.
+Usual weekly earnings represent earnings before taxes and other deductions and include any overtime pay, commissions, or tips usually received (at the main job in the case of multiple jobholders). Prior to 1994, respondents were asked how much they usually earned per week. Since January 1994, respondents have been asked to identify the easiest way for them to report earnings (hourly, weekly, biweekly, twice monthly, monthly, annually, or other) and how much they usually earn in the reported time period. Earnings reported on a basis other than weekly are converted to a weekly equivalent. The term "usual" is determined by each respondent's own understanding of the term. If the respondent asks for a definition of "usual," interviewers are instructed to define the term as more than half the weeks worked during the past 4 or 5 months." Unit is dollars, seasonally adjusted.
+  + Dow Jones Composite Average (DJCA) - From FRED: "The Dow Jones Composite Average is combination of all three major Dow Jones Averages (Industrial, Utility, and Transportation). Since the Composite Average is made up of this select group of prominent stocks, Dow Jones refers to it as a blue chip microcosm of the US stock market." Unit is index, not seasonally adjusted.
+  + Housing Starts (HOUST) - From FRED: "As provided by the Census, start occurs when excavation begins for the footings or foundation of a building. All housing units in a multifamily building are defined as being started when this excavation begins. Beginning with data for September 1992, estimates of housing starts include units in structures being totally rebuilt on an existing foundation."
+
+2. My response variable in median weekly wages, while my predictor variables are unemployment, GDP, DJCA, and housing starts.
+
+3. My research question is: can we linearly predict median weekly wages given some combination of unemployment, GDP, DJCA, and housing starts? I think this is an interesting question because median weekly wages provides a stronger indication of the economic conditions for actual working people in America. GDP, while important, doesn't tell us precisely if people are thriving or not. Hence, I want to see how median wages can be predicted from these other important economic indicators.
+
+## Correlation Analysis
+1. Create correlation plot.
+```{r}
+MEDIAN_WEEKLY_WAGES <- econ_indicators$MEDIAN_WEELKY_WAGES
+UNRATE <- econ_indicators$UNRATE
+GDP <- econ_indicators$GDP
+DJCA <- econ_indicators$DJCA
+HOUST <- econ_indicators$HOUST
+
+DF_indicators <- data.frame(MEDIAN_WEEKLY_WAGES, UNRATE, GDP, DJCA, HOUST)
+r <- cor(DF_indicators)
+
+ggcorrplot(r, title="Economic Indicators (data from FRED)", lab=TRUE)
+```
+
+2. The matrix indicates very high correlation between MEDIAN_WEEKLY_WAGES and both GDP and DJCA (0.98 and 0.96). Either of these predictor variables seem to be good candidates for being the first to enter our stepwise model.
+
+3. All of our predictor values are correlated with our response variable (MEDIAN_WEEKLY_WAGES). UNRATE is negatively correlated, while HOUST, GDP, and DJCA are all positively correlated with our response variable.
+
+4. Given how closely related some of these indicators are, we, unsurprisingly, do see multicolinearity in the dataset. For example, we see that GDP and DJCA are highly correlated (0.99).
+
+## Variable Selection
+1. Regress MEDIAN_WEEKLY_WAGES on each predictor variable and compare outputs. Use alpha_to_enter = 0.15 and alpha_to_remove = 0.15.
+```{r}
+model1 <- lm(MEDIAN_WEEKLY_WAGES ~ DJCA, data=DF_indicators)
+summary(model1)
+
+model2 <- lm(MEDIAN_WEEKLY_WAGES ~ GDP, data=DF_indicators)
+summary(model2)
+
+model3 <- lm(MEDIAN_WEEKLY_WAGES ~ UNRATE, data=DF_indicators)
+summary(model3)
+
+model4 <- lm(MEDIAN_WEEKLY_WAGES ~ HOUST, data=DF_indicators)
+summary(model4)
+
+```
+Since the p-value for each of the predictor variables' slopes is less than our alpha_to_enter, each is a candidate to be entered into the stepwise model. We choose the one with the lowest p-value. Both the MEDIAN_WEEKLY_WAGES ~ GDP and MEDIAN_WEEKLY_WAGES ~ DJCA have slopes with p-value < 2e-16, but we notice that the t-value for the slope in the GDP model is higher, indicating greater significance. Thus, we'll choose GDP as the first variable for our model.
+
+2. Fit each of the two-predictor models that include GDP as a predictor.
+```{r}
+model1 <- lm(MEDIAN_WEEKLY_WAGES ~ GDP + DJCA, data=DF_indicators)
+summary(model1)
+
+model2 <- lm(MEDIAN_WEEKLY_WAGES ~ GDP + UNRATE, data=DF_indicators)
+summary(model2)
+
+model3 <- lm(MEDIAN_WEEKLY_WAGES ~ GDP + HOUST, data=DF_indicators)
+summary(model3)
+```
+
+Each second predictor (DJCA, UNRATE, HOUST) has a p-value < 0.15, and is thus a candidate to enter the model. We choose to proceed with the one with the lowest p-value, which is UNRATE. Note that our p-value for GDP remains below 0.15, so we proceed with the MEDIAN_WEEKLY_WAGES ~ GDP + UNRATE model.
+
+3. Fit each three-predictor model that includes GDP and UNRATE.
+```{r}
+model1 <- lm(MEDIAN_WEEKLY_WAGES ~ GDP + UNRATE + DJCA, data=DF_indicators)
+summary(model1)
+
+model2 <- lm(MEDIAN_WEEKLY_WAGES ~ GDP + UNRATE + HOUST, data=DF_indicators)
+summary(model2)
+```
+
+Since the p-value for HOUST is greater than 0.15, it cannot be added to the model. We thus proceed with MEDIAN_WEEKLY_WAGES ~ GDP + UNRATE + DJCA.
+
+4. Fit each four-predictor model that includes GDP, UNRATE, and DJCA.
+
+```{r}
+model <- lm(MEDIAN_WEEKLY_WAGES ~ GDP + UNRATE + DJCA + HOUST, data=DF_indicators)
+summary(model)
+```
+
+Note that the p-value for HOUST is greater than our alpha_to_enter, so we do not include it in the model. Thus, our final regression model is as follows:
+```{r}
+model_final <- lm(MEDIAN_WEEKLY_WAGES ~ GDP + UNRATE + DJCA, data=DF_indicators)
+summary(model_final)
+```
