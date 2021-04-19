@@ -2,7 +2,10 @@
 title: "MATH 212 Project Preliminary Analysis"
 author: "Zack Roder"
 date: "4/18/2021"
-output: html_document
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
