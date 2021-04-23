@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(astsa)
+library(readxl)
 library(priceR)
 ```
 
@@ -20,25 +21,9 @@ We located our data on https://fred.stlouisfed.org. Units are US Dollars, Season
 
 
 ## Data Cleaning and Initial Analysis
-First, we clean the data so that we can load it into a ts object.
+First, we clean the data so that we can load it into a ts object. We are going to make two series to study: total monthly dollar value of US exports to Mexico & Canada, and total monthly dollar value of imports from Mexico & Canada. First, it may be helpful to adjust the data for inflation (since it's currently in nominal dollars) to remove at least some of the irregularity and better understand the dollar values. Using the priceR package, we can do this easily. We'll convert each to 2019 dollars (last year of series). We then plot the data. After plotting the data, we can see that all series have a strong, upward trends. Somehow, we need to make this data stationary. 
 
-```{r}
-library(readxl)
-library(astsa)
-
-#read data from excel
-data <- read_excel("C:\\Users\\Zack\\Documents\\Spring 2021\\MATH 333\\project\\EXPORTS_IMPORTS_MEX_CAN.xls")
-data <- data.frame(data$CAN_EXPORTS, data$CAN_IMPORTS, data$MEX_EXPORTS, data$MEX_IMPORTS)
-
-#convert to ts object
-data_ts <- ts(data, start=1980, freq=12)
-
-tsplot(data_ts)
-```
-
-After plotting the data, we can see that all series have a strong, upward trends. Somehow, we need to make this data stationary. First, it may be helpful to adjust the data for inflation (since it's currently in nominal dollars) to remove at least some of the irregularity and better understand the dollar values. Using the priceR package, we can do this easily. We'll convert each to 2019 dollars (last year of series).
-
-```{r}
+```{r, echo=FALSE}
 data <- read_excel("C:\\Users\\Zack\\Documents\\Spring 2021\\MATH 333\\project\\EXPORTS_IMPORTS_MEX_CAN.xls")
 
 data$CAN_EXPORTS <- adjust_for_inflation(data$CAN_EXPORTS, data$observation_date, "US", to_date=2019)
@@ -47,7 +32,11 @@ data$CAN_IMPORTS <- adjust_for_inflation(data$CAN_IMPORTS, data$observation_date
 data$MEX_EXPORTS <- adjust_for_inflation(data$MEX_EXPORTS, data$observation_date, "US", to_date=2019)
 data$MEX_IMPORTS <- adjust_for_inflation(data$MEX_IMPORTS, data$observation_date, "US", to_date=2019)
 
-
+#use millions of dollars as unit
+data$CAN_EXPORTS <- data$CAN_EXPORTS / 1000000000 
+data$CAN_IMPORTS <- data$CAN_IMPORTS / 1000000000
+data$MEX_EXPORTS <- data$MEX_EXPORTS / 1000000000
+data$MEX_IMPORTS <- data$MEX_IMPORTS / 1000000000
 
 #convert to ts object
 CAN_EXPORTS <- ts(data$CAN_EXPORTS, start=1980, freq=12)
@@ -55,44 +44,87 @@ CAN_IMPORTS <- ts(data$CAN_IMPORTS, start=1980, freq=12)
 MEX_EXPORTS <- ts(data$MEX_EXPORTS, start=1980, freq=12)
 MEX_IMPORTS <- ts(data$MEX_IMPORTS, start=1980, freq=12)
 
-data <- data.frame(data$CAN_EXPORTS, data$CAN_IMPORTS, data$MEX_EXPORTS, data$MEX_IMPORTS)
+TOTAL_EXPORTS_MEX_CAN <- CAN_EXPORTS + MEX_EXPORTS
+TOTAL_IMPORTS_MEX_CAN <- CAN_IMPORTS + MEX_IMPORTS
 
-data <- ts(data, start=1980, freq=12)
-
-tsplot(data_ts)
+tsplot(TOTAL_IMPORTS_MEX_CAN, main="Monthly US Imports from Mexico & Canada, 1980-2019", ylab= "2019 US Dollars, Billions (inflation adjusted)", xlab="Year" )
+tsplot(TOTAL_EXPORTS_MEX_CAN, main="Monthly US Exports to Mexico & Canada, 1980-2019", ylab= "2019 US Dollars, Billions (inflation adjusted)", xlab="Year")
 ```
 
-Let's see what the ACF currently looks like.
-```{r}
-acf1(CAN_EXPORTS)
-acf1(CAN_IMPORTS)
-acf1(MEX_EXPORTS)
-acf1(MEX_IMPORTS)
+Let's see what the ACF/PACF currently looks like for this series. If the series are currently stationary, the ACF and PACF plots should show a drop-off in correlation after a small amount of lag between points.
+```{r, echo=FALSE}
+acf2(TOTAL_IMPORTS_MEX_CAN)
+acf2(TOTAL_EXPORTS_MEX_CAN)
 ```
-As we can see, this is not even close to being stationary. First, we'll try differencing.
+As we can see, this is not even close to being stationary. Hopefully, the difference transformation will coerce the data into being approximately stationary.
 
 ```{r}
-CAN_EXPORTS_diff <- diff(CAN_EXPORTS)
-CAN_IMPORTS_diff <- diff(CAN_IMPORTS)
-MEX_EXPORTS_diff <- diff(MEX_EXPORTS)
-MEX_IMPORTS_diff <- diff(MEX_IMPORTS)
+tsplot(diff(TOTAL_IMPORTS_MEX_CAN), main="Monthly US Imports from Mexico & Canada, Differenced, 1980-2019", ylab= "2019 US Dollars, Billions (inflation adjusted)", xlab="Year")
 
-acf1(CAN_EXPORTS_diff)
-acf1(CAN_IMPORTS_diff)
-acf1(MEX_EXPORTS_diff)
-acf1(MEX_IMPORTS_diff)
-
-tsplot(CAN_EXPORTS_diff)
-tsplot(CAN_IMPORTS_diff)
-tsplot(MEX_EXPORTS_diff)
-tsplot(MEX_IMPORTS_diff)
-
+tsplot(diff(TOTAL_EXPORTS_MEX_CAN), main="Monthly US Exports to Mexico & Canada, Differenced, 1980-2019", ylab= "2019 US Dollars, Billions (inflation adjusted)", xlab="Year")
 ```
 
-Detrending:
+Next, let's review the ACF/PACF for the differenced series:
 
 ```{r}
-fit <- lm(CAN_EXPORTS ~ time(CAN_EXPORTS), na.action=NULL)
-tsplot(resid(fit))
+acf2(diff(TOTAL_IMPORTS_MEX_CAN))
+acf2(diff(TOTAL_EXPORTS_MEX_CAN))
+```
+First of all, this indicates that we likely will want a difference order of 1 in our ARIMA model.
 
+ACF/PACF for the logged series:
+
+```{r}
+acf2(log(TOTAL_IMPORTS_MEX_CAN))
+acf2(log(TOTAL_EXPORTS_MEX_CAN))
+```
+
+
+1980 to 1994 arima model (1,1,2)
+
+
+forecast code notes
+
+```{r}
+exports <- ts(TOTAL_EXPORTS_MEX_CAN[1:168], start=1980, freq=12)
+
+fit <- auto.arima(TOTAL_EXPORTS_MEX_CAN)
+plot(fit)
+plot(forecast(fit, h=20))
+summary(fit)
+?sarima
+fit <- sarima(TOTAL_EXPORTS_MEX_CAN, 3, 1, 2)
+fit <- auto.arima(ts(TOTAL_EXPORTS_MEX_CAN[1:168], start=1980, freq=12))
+summary(fit)
+fit <- sarima(ts(TOTAL_EXPORTS_MEX_CAN[1:168], start=1980, freq=12), 1, 1, 2)
+plot(log(TOTAL_EXPORTS_MEX_CAN))
+plot(diff(log(TOTAL_EXPORTS_MEX_CAN)))
+export_trend <- lm(TOTAL_EXPORTS_MEX_CAN ~ 0 + time(TOTAL_EXPORTS_MEX_CAN), na.action=NULL)
+summary(export_trend)
+tsplot(resid(export_trend))
+auto.arima(resid(export_trend))
+sarima(resid(export_trend), 3, 1, 2)
+auto.arima(TOTAL_EXPORTS_MEX_CAN)
+exports <- ts(TOTAL_EXPORTS_MEX_CAN[1:168], start=1980, freq=12)
+auto.arima(exports)
+sarima.for(exports, 24, 1, 1, 1)
+sarima.for(exports, 24, 1, 1, 2)
+lines(ts(TOTAL_EXPORTS_MEX_CAN[1:192], start=1980, freq=12))
+sarima(exports, 1, 1, 2)
+
+###
+#forecast
+sarima.for(exports, 24, 1, 1, 2)
+#add real data
+lines(ts(TOTAL_EXPORTS_MEX_CAN[1:192], start=1980, freq=12))
+###
+
+lines(ts(TOTAL_EXPORTS_MEX_CAN[1:204], start=1980, freq=12))
+sarima(log(exports), 1, 1, 2)
+auto.arima(log(exports))
+sarima(log(exports), 2,1,0)
+sarima(log(exports), 2,0,0)
+
+sarima(log(TOTAL_EXPORTS_MEX_CAN), 1, 0, 0)
+sarima.for(log(TOTAL_EXPORTS_MEX_CAN), 24, 1, 0, 0)
 ```

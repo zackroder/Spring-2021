@@ -1,0 +1,75 @@
+
+.global _start
+
+# rules
+# 1 caller save
+# 2 callee save
+# 3 return address
+# 4 stack pointer
+# 5 parameters/return value
+
+_start:
+    movia sp, stack
+    # startup sequence
+    subi sp, sp, 4
+
+    movi r8, 4        # x is r8
+    addi r16, r8, 1   # y is r16
+
+
+    # prologue
+    stw r8, 0(sp)
+    mov r4, r8
+    mov r5, r16
+
+    call f            # call f
+
+    # epilogue
+    ldw r8, 0(sp)
+
+    add r8, r8, r16   # x = x + y
+    add r8, r8, r2    # x = x + y + z (f(x,y))
+
+    # cleanup sequence
+    addi sp, sp, 4
+end:
+    br end               # return from whence we came
+
+f:
+    # startup sequence
+    subi sp, sp, 12
+    stw ra, 8(sp)
+    stw r16, 4(sp)
+
+    addi r8, r4, 3    # i = 3 + a
+    addi r16, r5, 4   # j = 4 + b
+
+    # prologue
+    add r4, r8, r16
+    stw r8, 0(sp)
+
+    call g
+
+    # epilogue
+    ldw r8, 0(sp)
+
+    add r2, r2, r8    # rval = rval (from g) + i
+    add r2, r2, r16   # rval = rval + j
+
+    # cleanup sequence
+    ldw r16, 4(sp)
+    ldw ra, 8(sp)
+    addi sp, sp, 12
+    ret               # return from whence we came
+
+g:
+    # startup sequence
+    muli r2, r4, 2      # rval = 2 * c
+    addi r2, r2, 2      # rval = rval + 2
+    # cleanup sequence
+    ret
+
+.data
+.skip 500
+stack:
+.end
