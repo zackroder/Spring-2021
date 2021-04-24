@@ -59,10 +59,51 @@ tsplot(MEX_IMPORTS, main="Monthly US Imports from Mexico, 1980-2019", ylab= "201
 ## Our Data
 To make one series, we sum together the four series. This combined series can now be interpreted as the monthly total trade with both Mexico and Canada. Also, since we are particularly interested in modeling the data between 1980 and 1994, we will splice it.
 ```{r 2, echo=FALSE, fig.width=6, fig.height=4, fig.align="center"}
-TOTAL_TRADE = CAN_EXPORTS + CAN_IMPORTS + MEX_EXPORTS + MEX_EXPORTS
+TOTAL_TRADE = CAN_EXPORTS + CAN_IMPORTS + MEX_EXPORTS + MEX_IMPORTS
 TOTAL_TRADE = ts(TOTAL_TRADE[1:168], start=1980, freq=12)
 tsplot(TOTAL_TRADE, main="Monthly US Total Trade with Canada and Mexico, 1980-1994", ylab="2019 US Dollars, Millions", xlab="Year")
 ```
 
-##Preliminary Analysis
-We see an obvious upward trend, there is no immediately apparent seasonality. As the ACF confirms, we will first need to coerce this data into being stationary before we can build our model and forecast.
+## Preliminary Analysis
+Since the data is not stationary, we will need to coerce it. We can difference it:
+```{r 3, echo=FALSE}
+tsplot(diff(TOTAL_TRADE), main="First Difference Monthly US Total Trade with Canada and Mexico, 1980-1994", ylab="2019 US Dollars, Millions", xlab="Year")
+```
+
+## Preliminary Analysis
+We also tried logging the series. The plot of the difference of the logged series follows:
+```{r 4, echo=FALSE}
+tsplot(diff(log(TOTAL_TRADE)), main="First Difference, Logged Monthly US Total Trade with Canada and Mexico, 1980-1994", ylab="Change in percent change, 2019 US Dollars", xlab="Year")
+```
+
+## Preliminary Analysis
+Looking at the ACF/PACF plot for the differenced, logged series indicates an ARMA model is appropriate:
+```{r 5, echo=FALSE}
+acf2(diff(log(TOTAL_TRADE)), max.lag=160)
+```
+
+## Building Our Model
+- We sought out to build an ARMA model that we could use to forecast total trade.
+- First, we noticed that we want d=1 because that helped coerce the data into being stationary.
+- Through trial and error, we settled on an ARIMA(2,1,0) model.
+
+## Our Model
+```{r 6, results='hide', fig.keep='all'}
+sarima(log(TOTAL_TRADE), 2, 1, 0)
+```
+
+## Building a Forecast
+Using our model, we can build a forecast using the 1980-1994 data and compare that to actual values.
+```{r 7, echo=FALSE, results='hide', fig.width=7, fig.height=4, fig.align="center"}
+sarima.for(log(TOTAL_TRADE), 60, 2, 1, 0)
+TOTAL_TRADE_EXT = CAN_EXPORTS + CAN_IMPORTS + MEX_EXPORTS + MEX_IMPORTS
+lines(log(TOTAL_TRADE_EXT))
+```
+
+## Forecast Evaluation
+- The actual series values land on the outer edges of our confidence intervals, with most data points outside of the forecast's 80% confidence interval.
+
+- This seems to suggest that NAFTA, in the 5 years following its implementation, did have a somewhat noticeable effect on US trade with Canada and Mexico. 
+
+- This is even apparent in the original plot of the data. We can see an increase in the upward trend after 1994.
+
