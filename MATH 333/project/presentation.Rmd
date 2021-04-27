@@ -65,9 +65,10 @@ tsplot(TOTAL_TRADE, main="Monthly US Total Trade with Canada and Mexico, 1980-19
 ```
 
 ## Preliminary Analysis
-Since the data is not stationary, we will need to coerce it. We can difference it:
+Since the data is not stationary, we will need to coerce it. First, we can seasonally difference the data.
 ```{r 3, echo=FALSE}
-tsplot(diff(TOTAL_TRADE), main="First Difference Monthly US Total Trade with Canada and Mexico, 1980-1994", ylab="2019 US Dollars, Millions", xlab="Year")
+tsplot(diff(TOTAL_TRADE, lag=12), main="First Difference Monthly US Total Trade with Canada and Mexico, 1980-1994", ylab="2019 US Dollars, Millions", xlab="Year")
+acf2(diff(TOTAL_TRADE, lag=12))
 ```
 
 ## Preliminary Analysis
@@ -77,7 +78,7 @@ tsplot(diff(log(TOTAL_TRADE)), main="First Difference, Logged Monthly US Total T
 ```
 
 ## Preliminary Analysis
-Looking at the ACF/PACF plot for the differenced, logged series indicates an ARMA model is appropriate:
+Looking at the ACF/PACF plot for the differenced, logged series indicates an ARMA model is appropriate (tails off):
 ```{r 5, echo=FALSE}
 acf2(diff(log(TOTAL_TRADE)), max.lag=160)
 ```
@@ -85,17 +86,22 @@ acf2(diff(log(TOTAL_TRADE)), max.lag=160)
 ## Building Our Model
 - We sought out to build an ARMA model that we could use to forecast total trade.
 - First, we noticed that we want d=1 because that helped coerce the data into being stationary.
-- Through trial and error, we settled on an ARIMA(2,1,0) model.
+- Through trial and error, we settled on an ARIMA(2,1,1) model.
+
+```{r xd}
+x <- sarima(log(TOTAL_TRADE), 2, 1, 1, details=FALSE)
+x$ttable
+```
 
 ## Our Model
 ```{r 6, results='hide', fig.keep='all'}
-sarima(log(TOTAL_TRADE), 2, 1, 0)
+sarima(log(TOTAL_TRADE), 2, 1, 1)
 ```
 
 ## Building a Forecast
 Using our model, we can build a forecast using the 1980-1994 data and compare that to actual values.
 ```{r 7, echo=FALSE, results='hide', fig.width=7, fig.height=4, fig.align="center"}
-sarima.for(log(TOTAL_TRADE), 60, 2, 1, 0)
+sarima.for(log(TOTAL_TRADE), 84, 2, 1, 0)
 TOTAL_TRADE_EXT = CAN_EXPORTS + CAN_IMPORTS + MEX_EXPORTS + MEX_IMPORTS
 lines(log(TOTAL_TRADE_EXT))
 ```

@@ -108,3 +108,10 @@ Note that the p-value for HOUST is greater than our alpha_to_enter, so we do not
 model_final <- lm(MEDIAN_WEEKLY_WAGES ~ GDP + UNRATE + DJCA, data=DF_indicators)
 summary(model_final)
 ```
+
+## Regression Model and Interpretations
+1. We have thus found our final regression model. In standard form:
+
+
+2. Coefficient Interpretation.
+  + When 
