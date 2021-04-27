@@ -25,7 +25,7 @@ We located our data on https://fred.stlouisfed.org. Units are US Dollars, Season
 First, we clean the data so that we can load it into a ts object. First, it may be helpful to adjust the data for inflation (since it's currently in nominal dollars) to remove at least some of the irregularity and better understand the dollar values. Using the priceR package, we can do this easily. We'll convert each to 2019 dollars (last year of series). We then plot the data. After plotting the data, we can see that all series have a strong, upward trends. Somehow, we need to make these data stationary. 
 
 ```{r, echo=FALSE, results='hide'}
-data <- read_excel("C:\\Users\\Zack\\Documents\\Spring 2021\\MATH 333\\project\\EXPORTS_IMPORTS_MEX_CAN.xls")
+data <- read_excel("C:\\Users\\zackr\\Documents\\Spring-2021\\MATH 333\\project\\EXPORTS_IMPORTS_MEX_CAN.xls")
 
 data$CAN_EXPORTS <- adjust_for_inflation(data$CAN_EXPORTS, data$observation_date, "US", to_date=2019)
 data$CAN_IMPORTS <- adjust_for_inflation(data$CAN_IMPORTS, data$observation_date, "US", to_date=2019)
@@ -60,13 +60,42 @@ TOTAL_TRADE = ts(TOTAL_TRADE[1:168], start=1980, freq=12)
 tsplot(TOTAL_TRADE, main="Monthly US Total Trade with Canada and Mexico, 1980-1994", ylab="2019 US Dollars, Millions", xlab="Year")
 ```
 
-
-Let's see what the ACF/PACF currently looks like for this series. If the series is currently stationary, the ACF and PACF plots should show a drop-off in correlation after a small amount of lag between points.
-```{r, echo=FALSE, results='hide'}
-acf2(TOTAL_TRADE, max.lag=150)
+As we can see, this is not even close to being stationary. Hopefully, the difference and log transformation will coerce the data into being approximately stationary.
+```{r}
+tsplot(diff(log(TOTAL_TRADE)))
+acf2(diff(log(TOTAL_TRADE)))
 ```
-As we can see, this is not even close to being stationary. Hopefully, the difference transformation will coerce the data into being approximately stationary.
 
+The logged series with first difference applied appears approximately stationary, so we can proceed with building our model.
+
+## Building a SARIMA model
+To look for seasonal components for our model, we need to also account for seasonal differences in the series. Since this is monthly, we will take the lag 12 difference as well.
+
+```{r, echo=FALSE, results='hide'}
+tsplot(diff(diff(log(TOTAL_TRADE), lag=12)), col=4, ylab=expression(nabla~nabla[12]~log(TOTAL_TRADE)))
+```
+
+By evaluating the ACF/PACF, we should be able to determine the SARIMA components.
+
+```{r}
+acf2(diff(diff(log(TOTAL_TRADE), lag=12)))
+```
+
+To estimate the non-seasonal order of the SARIMA model, we inspect the first few lags. It appears that the PACF cuts off after lag 2. This suggests AR(2) within the season. Including a difference order, this gives us an estimate of ARIMA(2,1,0).
+
+To estimate the seasonal order of the SARIMA model, we inspect the lags at 12s (s=1,2,...). At lag 1 (12 months), we see the ACF cut off while the PACF tails off. This suggests SMA(1).
+
+Hence, we will first try an $ARIMA(2,1,0) \times (0,1,1)_{12}$ model.
+
+```{r}
+sarima(log(TOTAL_TRADE), 2, 1, 0, 0, 1, 1, 12)
+```
+
+The residuals for this model look okay, but we will see if adding an AR component within the season helps.
+
+```{r}
+sarima(log(TOTAL_TRADE), 2, 1, 0, 2, 1, 2, 12)
+```
 
 
 1980 to 1994 arima model (1,1,2)
@@ -116,3 +145,32 @@ sarima(log(exports), 2,0,0)
 
 sarima(log(TOTAL_EXPORTS_MEX_CAN), 1, 0, 0)
 sarima.for(log(TOTAL_EXPORTS_MEX_CAN), 24, 1, 0, 0)
+
+## Other Models We Tried
+
+### Detrending
+Because of the clear upward trend present in the series, we though that detrending (then developing an ARIMA model on the residuals) might be appropriate. However, we had mixed results.
+
+First, we detrended the data:
+
+```{r}
+trend <- lm(TOTAL_TRADE ~  time(TOTAL_TRADE), na.action = NULL)
+summary(trend)
+tsplot(TOTAL_TRADE, main="Monthly US Total Trade with Canada and Mexico, 1980-1994", ylab="2019 US Dollars, Millions", xlab="Year")
+lines(fitted(trend), col="red")
+```
+
+The linear model for the trend looks pretty solid, with significant coefficients. Next, we look at the plot of the residuals:
+
+```{r}
+tsplot(resid(trend))
+```
+
+This is obviously non-stationary, so we need to look at the difference.
+
+```{r}
+tsplot(diff(resid(trend)))
+acf2(diff(resid(trend)))
+
+decompose(resid(trend))
+```
