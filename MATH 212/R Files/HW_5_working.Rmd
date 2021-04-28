@@ -43,7 +43,7 @@ tsplot(res)
 abline(0,0)
 ```
 
-The trend apears to match the logged Johnson and Johnson data pretty well. The residual plot does not quite look white. We may need to include more controls in order to have a better fit model.
+The trend appears to match the logged Johnson and Johnson data pretty well. The residual plot does not quite look white. We may need to include more controls in order to have a better fit model.
 
 
 ### Exercise 3.2

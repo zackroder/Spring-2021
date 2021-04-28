@@ -1,15 +1,14 @@
 ---
-title: "MATH 212 Project Preliminary Analysis"
+title: "MATH 212 - Final Project"
 author: "Zack Roder"
-date: "4/18/2021"
-output:
-  pdf_document: default
+date: "4/27/2021"
+output: pdf_document
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(readxl)
 library(ggcorrplot)
+library(visreg)
 econ_indicators <- read_excel("C:\\Users\\Zack\\Documents\\Spring 2021\\MATH 212\\Data Sets\\economic_indicators.xls", sheet=1)
 ```
 
@@ -109,10 +108,58 @@ summary(model_final)
 
 ## Regression Model and Interpretations
 1. We have thus found our final regression model. In standard form:
-\begin{align*}
-\text{MEDIAN_WEEKLY_WAGES} = -61.819 + 0.0466\text{GDP} + 13.471\text{UNRATE} - 0.00739\text{DJCA}
-\end{align*}
+```{r results='asis', echo=FALSE}
+equatiomatic::extract_eq(model_final, use_coefs=TRUE)
+```
+
 
 
 2. Coefficient Interpretation.
-  + When 
+  + When UNRATE and DJCA are held constant, every one billion dollar increase in GDP increases median weekly wages by $0.05.
+  + When GDP and DJCA are held constant, every one unit increase in unemployment increases median weekly wages by \$13.47.
+  + When GDP and UNRATE are held constant, every one unit increase in the DJCA index increases median weekly wages by \$0.01.
+  
+3. Conditional Relationship Plots
+  + GDP:
+  
+```{r, echo=FALSE, fig.width=4,fig.height=2,fig.align='center'}
+visreg(model_final, "GDP", gg=TRUE, main="Median Weekly Wages (USD) vs. GDP (USD, Billions)")
+```
+
+  + UNRATE:
+  
+```{r, echo=FALSE, fig.width=4,fig.height=2,fig.align='center'}
+visreg(model_final, "UNRATE", gg=TRUE)
+```
+
+  + DJCA:
+  
+```{r, echo=FALSE, fig.width=4,fig.height=2,fig.align='center'}
+visreg(model_final, "DJCA", gg=TRUE)
+
+```
+
+4. R-squared.
+```{r, echo=FALSE}
+summary(model_final)
+```
+
+As we see in the summary of the model, we have an R-squared of 0.9852. This means that our model explains 98.52% of the variance in MEDIAN_WEEKLY_WAGES.
+
+## Predictions and Future Research Questions
+1. Given GDP = 21,494.731, UNRATE = 6.7, and DJCA = 9,732.69, we will use our model to predict MEDIAN_WEEKLY_WAGES.
+
+```{r}
+NEWDATA = data.frame(GDP=21494.731, UNRATE=6.7, DJCA=9732.69)
+predict(model_final, NEWDATA, interval="predict") 
+```
+
+As we can see in the R output, we compute a fitted value of $957.91, with prediction interval of [\$933.22, \$982.60].
+
+2. R-squared-adjusted.
+
+```{r}
+summary(model_final)
+```
+
+As we can see in the summary for our model, we have an adjusted-R-squared of 0.9838. This does not have the same interpretation as R-squared; in other words, this does not say that our model accounts of 98.38% of variance in MEDIAN_WEEKLY_WAGES. However, adjusted-R-squared can be useful in comparing different possible models with varying numbers of explanatory variables.
