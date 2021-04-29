@@ -1,7 +1,7 @@
 ---
 title: "MATH 212 - Final Project"
 author: "Zack Roder"
-date: "4/27/2021"
+date: "4/30/2021"
 output: pdf_document
 ---
 ```{r setup, include=FALSE}
@@ -41,7 +41,7 @@ HOUST <- econ_indicators$HOUST
 DF_indicators <- data.frame(MEDIAN_WEEKLY_WAGES, UNRATE, GDP, DJCA, HOUST)
 r <- cor(DF_indicators)
 
-ggcorrplot(r, title="Economic Indicators (data from FRED)", lab=TRUE)
+ggcorrplot(r, title="Economic Indicators", lab=TRUE) + labs(caption="Data from https://fred.stlouisfed.org/")
 ```
 
 2. The matrix indicates very high correlation between MEDIAN_WEEKLY_WAGES and both GDP and DJCA (0.98 and 0.96). Either of these predictor variables seem to be good candidates for being the first to enter our stepwise model.
@@ -123,19 +123,19 @@ equatiomatic::extract_eq(model_final, use_coefs=TRUE)
   + GDP:
   
 ```{r, echo=FALSE, fig.width=4,fig.height=2,fig.align='center'}
-visreg(model_final, "GDP", gg=TRUE, main="Median Weekly Wages (USD) vs. GDP (USD, Billions)")
+visreg(model_final, "GDP", gg=TRUE) + labs(title="Median Weekly Wages vs. GDP")
 ```
 
   + UNRATE:
   
 ```{r, echo=FALSE, fig.width=4,fig.height=2,fig.align='center'}
-visreg(model_final, "UNRATE", gg=TRUE)
+visreg(model_final, "UNRATE", gg=TRUE) + labs(title="Median Weekly Wages vs. UNRATE")
 ```
 
   + DJCA:
   
 ```{r, echo=FALSE, fig.width=4,fig.height=2,fig.align='center'}
-visreg(model_final, "DJCA", gg=TRUE)
+visreg(model_final, "DJCA", gg=TRUE) + labs(title="Median Weekly Wages vs. DJCA")
 
 ```
 
@@ -147,14 +147,14 @@ summary(model_final)
 As we see in the summary of the model, we have an R-squared of 0.9852. This means that our model explains 98.52% of the variance in MEDIAN_WEEKLY_WAGES.
 
 ## Predictions and Future Research Questions
-1. Given GDP = 21,494.731, UNRATE = 6.7, and DJCA = 9,732.69, we will use our model to predict MEDIAN_WEEKLY_WAGES.
+1. Given GDP = 21,494.731, UNRATE = 6.2, and DJCA = 8,550.45, we will use our model to predict MEDIAN_WEEKLY_WAGES.
 
 ```{r}
-NEWDATA = data.frame(GDP=21494.731, UNRATE=6.7, DJCA=9732.69)
+NEWDATA = data.frame(GDP=21494.731, UNRATE=6.2, DJCA=8550.45)
 predict(model_final, NEWDATA, interval="predict") 
 ```
 
-As we can see in the R output, we compute a fitted value of $957.91, with prediction interval of [\$933.22, \$982.60].
+As we can see in the R output, we compute a fitted value of $959.91, with prediction interval of [\$938.91, \$980.91].
 
 2. R-squared-adjusted.
 
